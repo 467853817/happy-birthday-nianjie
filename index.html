@@ -366,10 +366,85 @@ section{padding:var(--sp-10) 0}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
+/* ═══════════════════════════════════════════════════════════
+   16. 模糊进入开场（Intro Overlay）
+   ═══════════════════════════════════════════════════════════ */
+#intro-overlay{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(59,43,56,.18) 0%,rgba(30,20,28,.42) 70%,rgba(20,12,18,.55) 100%);
+  transition:opacity 1.5s cubic-bezier(.22,.61,.36,1),visibility 1.5s;
+  pointer-events:auto;
+}
+#intro-overlay.hidden{
+  opacity:0;visibility:hidden;pointer-events:none;
+}
+#intro-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  min-width:168px;min-height:72px;padding:18px 32px;
+  font-family:inherit;font-weight:700;letter-spacing:.5px;
+  color:#fff;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid rgba(255,255,255,.38);
+  border-radius:999px;
+  box-shadow:0 8px 32px rgba(255,106,160,.18),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .28s cubic-bezier(.22,.61,.36,1),background .28s,box-shadow .28s,opacity .4s;
+  will-change:transform;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+}
+#intro-btn:hover,#intro-btn:focus-visible{
+  transform:scale(1.06);
+  background:rgba(255,255,255,.22);
+  box-shadow:0 12px 40px rgba(255,106,160,.28),inset 0 1px 0 rgba(255,255,255,.35);
+  outline:none;
+}
+#intro-btn:active{transform:scale(.96)}
+#intro-btn .zh{font-size:18px;line-height:1.2}
+#intro-btn .en{font-size:11px;font-weight:600;letter-spacing:2.5px;opacity:.78;text-transform:uppercase}
+
+/* 主内容模糊状态 */
+body.intro-active #sky,
+body.intro-active .blob,
+body.intro-active #musicBtn,
+body.intro-active #hero,
+body.intro-active main,
+body.intro-active footer,
+body.intro-active #hearts,
+body.intro-active #toast,
+body.intro-active #lightbox,
+body.intro-active #finale{
+  filter:blur(16px);
+  transition:filter 1.55s cubic-bezier(.22,.61,.36,1);
+  pointer-events:none;
+}
+body:not(.intro-active) #sky,
+body:not(.intro-active) .blob,
+body:not(.intro-active) #musicBtn,
+body:not(.intro-active) #hero,
+body:not(.intro-active) main,
+body:not(.intro-active) footer,
+body:not(.intro-active) #hearts,
+body:not(.intro-active) #toast,
+body:not(.intro-active) #lightbox,
+body:not(.intro-active) #finale{
+  filter:blur(0);
+  transition:filter 1.55s cubic-bezier(.22,.61,.36,1);
+}
+/* 进入过程中禁止滚动 */
+body.intro-active{overflow:hidden;touch-action:none}
+
 /* 尊重用户减少动效偏好 */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
     transition-duration:.01ms!important;scroll-behavior:auto!important}
+  body.intro-active #sky,
+  body.intro-active .blob,
+  body.intro-active #musicBtn,
+  body.intro-active #hero,
+  body.intro-active main,
+  body.intro-active footer{filter:none!important}
+  #intro-overlay{transition:none}
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -515,6 +590,14 @@ section{padding:var(--sp-10) 0}
 <audio id="bgm" loop preload="none">
   <source src="music/birthday.mp3" type="audio/mpeg">
 </audio>
+
+<!-- 模糊进入开场覆盖层 -->
+<div id="intro-overlay" role="dialog" aria-label="进入网站" aria-modal="true">
+  <button id="intro-btn" type="button" aria-label="进入网站">
+    <span class="zh">进入网站</span>
+    <span class="en">ENTER SITE</span>
+  </button>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -1080,6 +1163,50 @@ function toast(msg, ms=2200){
   /* 写入名字 */
   $("#heroName").textContent = `生日快乐，${CONFIG.name}`;
   document.title = `生日快乐，${CONFIG.name} 🎂`;
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   K. 模糊进入开场
+   ═══════════════════════════════════════════════════════════ */
+(function intro(){
+  const overlay = $("#intro-overlay");
+  const btn = $("#intro-btn");
+  if(!overlay || !btn) return;
+
+  // 初始状态：开启模糊
+  document.body.classList.add("intro-active");
+
+  let entered = false;
+  function enter(){
+    if(entered) return;
+    entered = true;
+    btn.style.transform = "scale(0.94)";
+    // 先给一点点击反馈，再开始主过渡
+    requestAnimationFrame(() => {
+      document.body.classList.remove("intro-active");
+      overlay.classList.add("hidden");
+      // 动画结束后彻底移除遮罩，避免阻挡交互
+      setTimeout(() => {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+        document.body.style.touchAction = "";
+      }, 1600);
+    });
+  }
+
+  btn.addEventListener("click", enter);
+  // 键盘可操作
+  btn.addEventListener("keydown", e => {
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); enter(); }
+  });
+
+  // 减少动效：几乎瞬间进入
+  if(prefersReduced){
+    entered = true;
+    document.body.classList.remove("intro-active");
+    overlay.classList.add("hidden");
+    overlay.style.display = "none";
+  }
 })();
 </script>
 </body>
