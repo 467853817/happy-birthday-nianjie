@@ -1137,17 +1137,17 @@ function toast(msg, ms=2200){
   // 生成简单四叶草坐标（中心 + 4 片叶子）
   function cloverPoints(n){
     const pts = [];
-    const scale = Math.min(innerWidth, innerHeight) * 0.42; // 更大四叶草
-    // 中心一小簇
-    for(let i=0;i<Math.floor(n*0.1);i++){
-      pts.push({x: rand(-scale*0.25, scale*0.25), y: rand(-scale*0.25, scale*0.25)});
+    const scale = Math.min(innerWidth, innerHeight) * 0.50; // 更大更散开
+    // 中心少量
+    for(let i=0;i<Math.floor(n*0.05);i++){
+      pts.push({x: rand(-scale*0.15, scale*0.15), y: rand(-scale*0.15, scale*0.15)});
     }
-    // 四片叶子：上、右、下、左
+    // 四片叶子：上、右、下、左（距离拉大，更散开）
     const leaves = [
-      {cx:0, cy:-scale*0.95, rx:scale*0.55, ry:scale*0.72},  // 上
-      {cx:scale*0.95, cy:0, rx:scale*0.72, ry:scale*0.55},   // 右
-      {cx:0, cy:scale*0.95, rx:scale*0.55, ry:scale*0.72},   // 下
-      {cx:-scale*0.95, cy:0, rx:scale*0.72, ry:scale*0.55}   // 左
+      {cx:0, cy:-scale*1.12, rx:scale*0.60, ry:scale*0.82},  // 上
+      {cx:scale*1.12, cy:0, rx:scale*0.82, ry:scale*0.60},   // 右
+      {cx:0, cy:scale*1.12, rx:scale*0.60, ry:scale*0.82},   // 下
+      {cx:-scale*1.12, cy:0, rx:scale*0.82, ry:scale*0.60}   // 左
     ];
     const perLeaf = Math.floor((n - pts.length) / 4);
     leaves.forEach(leaf => {
